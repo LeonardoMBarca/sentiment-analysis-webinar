@@ -6,13 +6,40 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import make_interp_spline
 import numpy as np
 
+
+
+@st.cache_resource
+def load_model():
+    with st.spinner("🔄 Carregando modelo de IA..."):
+        tokenizer = AutoTokenizer.from_pretrained("siebert/sentiment-roberta-large-english")
+        model = AutoModelForSequenceClassification.from_pretrained("siebert/sentiment-roberta-large-english")
+        time.sleep(1)
+    success_box = st.empty()
+    success_box.success("✅ Modelo carregado com sucesso!")
+    time.sleep(1.5)
+    success_box.empty()
+    return tokenizer, model
+
+def predict(text, tokenizer, model):
+    with st.spinner(f"🧠 Analisando: {text}..."):
+        inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
+        outputs = model(**inputs)
+        probabilities = torch.nn.functional.softmax(outputs.logits, dim=-1)
+        predicted_label = torch.argmax(probabilities, dim=1).item()
+        time.sleep(0.5)
+    return predicted_label, probabilities
+
+import streamlit as st
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.interpolate import make_interp_spline
+import time
+
 # CONFIGURAÇÃO DA PÁGINA
 st.set_page_config(page_title="Análise de Sentimento", page_icon="😊", layout="wide")
-
-# ESTILO CUSTOMIZADO
 st.markdown("""
     <style>
-    .main {background-color: #f8fafc;}
+    .main {background-color: #f8fafc; padding: 10px;}
     .stTextArea textarea {
         border-radius: 8px;
         border: 1px solid #cbd5e1;
@@ -35,11 +62,11 @@ st.markdown("""
         font-size: 2.5rem;
         font-weight: 700;
         text-align: center;
-        margin-bottom: 5px;
+        margin-bottom: 10px;
     }
     .info {
         color: #4b5563;
-        font-size: 1rem;
+        font-size: 1.1rem;
         text-align: center;
         margin-bottom: 25px;
     }
@@ -52,7 +79,7 @@ st.markdown("""
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
     .subheader {
-        font-size: 1.3rem;
+        font-size: 1.4rem;
         color: #1e40af;
         margin: 10px 0;
         font-weight: 600;
@@ -60,34 +87,14 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# CABEÇALHO
+# HEADER
 st.markdown('<div class="header">Análise de Sentimento com IA 😊</div>', unsafe_allow_html=True)
-st.markdown('<div class="info">Digite frases em inglês separadas por ponto final "." para análise individual.</div>', unsafe_allow_html=True)
+st.markdown('<div class="info">Digite frases em inglês separadas por "." e veja a análise individual de sentimento.</div>', unsafe_allow_html=True)
 
-# FUNÇÃO PARA CARREGAR O MODELO
-@st.cache_resource
-def load_model():
-    with st.spinner("🔄 Carregando modelo de IA..."):
-        tokenizer = AutoTokenizer.from_pretrained("siebert/sentiment-roberta-large-english")
-        model = AutoModelForSequenceClassification.from_pretrained("siebert/sentiment-roberta-large-english")
-        time.sleep(1)
-    success_box = st.empty()
-    success_box.success("✅ Modelo carregado com sucesso!")
-    time.sleep(1.5)
-    success_box.empty()
-    return tokenizer, model
+# LAYOUT
+col_input, col_result = st.columns([1.2, 2])
 
-# FUNÇÃO PARA PREDIÇÃO
-def predict(text, tokenizer, model):
-    with st.spinner(f"🧠 Analisando: {text}..."):
-        inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
-        outputs = model(**inputs)
-        probabilities = torch.nn.functional.softmax(outputs.logits, dim=-1)
-        predicted_label = torch.argmax(probabilities, dim=1).item()
-        time.sleep(0.5)
-    return predicted_label, probabilities
-
-# GRÁFICO
+# PLOT
 def plot_sentiment_trend(results):
     x = np.arange(1, len(results) + 1)
     y = np.array([r["prob"][1].item() for r in results])
@@ -111,20 +118,17 @@ def plot_sentiment_trend(results):
 
     ax.set_ylim(-0.1, 1.5)
     ax.set_title("Tendência de Sentimento")
-    ax.set_ylabel("Probabilidade de Sentimento Positivo")
+    ax.set_ylabel("Prob. Positivo")
     ax.set_xlabel("Frase")
     st.pyplot(fig, use_container_width=True)
 
-# LAYOUT DE COLUNAS
-col_input, col_result = st.columns([1.2, 2])
-
+# VARIÁVEIS
 results = []
 
 # COLUNA DE ENTRADA
 with col_input:
     st.markdown("### Texto de Entrada")
-    user_input = st.text_area(
-        "Digite seu Texto:",
+    user_input = st.text_area("Digite seu Texto:",
         placeholder="Exemplo: I love this. This is bad.",
         height=200
     )
@@ -134,13 +138,16 @@ with col_input:
     if analyze_button and user_input:
         with st.spinner("🔍 Analisando..."):
             texts = [t.strip() for t in user_input.split(".") if t.strip()]
+            time.sleep(0.5)
             if not texts:
                 st.error("❌ Nenhuma frase válida encontrada.")
                 st.stop()
 
-        st.success(f"✅ {len(texts)} frase(s) detectada(s).")
+        valid_msg = st.empty()
+        valid_msg.success(f"✅ {len(texts)} frase(s) detectada(s).")
 
-        tokenizer, model = load_model()
+        # Exemplo fictício para testes
+        tokenizer, model = load_model()  # sua função de carregamento
         classes = ["Negativo 😞", "Positivo 😊"]
 
         for text in texts:
@@ -151,10 +158,10 @@ with col_input:
                 "text": text
             })
 
-# COLUNA DO RESULTADO
-with col_result:
-    if analyze_button and user_input and results:
-        st.markdown('<div class="subheader">Resultados por Frase</div>', unsafe_allow_html=True)
+        valid_msg.empty()
+
+        st.markdown("<div style='max-height: 400px; overflow-y: auto;'>", unsafe_allow_html=True)
+
         for result in results:
             label = result["label"]
             prob = result["prob"]
@@ -168,5 +175,10 @@ with col_result:
                 </div>
             ''', unsafe_allow_html=True)
 
+        st.markdown("</div>", unsafe_allow_html=True)
+
+# COLUNA DO GRÁFICO
+with col_result:
+    if analyze_button and user_input and results:
         st.markdown('<div class="subheader">Visualização Gráfica</div>', unsafe_allow_html=True)
         plot_sentiment_trend(results)
