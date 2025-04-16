@@ -116,7 +116,7 @@ def plot_sentiment_trend(results):
         ax.text(xi, yi + 0.05, label.replace("Positivo ", "").replace("Negativo ", ""),
                 ha='center', fontsize=9, color='green' if label == 'Positivo 😊' else 'red')
 
-    ax.set_ylim(-0.1, 1.5)
+    ax.set_ylim(-0.2, 1.5)
     ax.set_title("Tendência de Sentimento")
     ax.set_ylabel("Prob. Positivo")
     ax.set_xlabel("Frase")
