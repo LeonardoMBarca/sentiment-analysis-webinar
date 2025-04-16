@@ -29,19 +29,21 @@ def predict(text, tokenizer, model):
         time.sleep(0.5)
     return predicted_label, probabilities
 
-st.set_page_config(page_title="Análise de Sentimento", page_icon="😊", layout="wide")
+import streamlit as st
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.interpolate import make_interp_spline
+import time
 
-# ESTILO FIXO E MINIMALISTA
+# CONFIGURAÇÃO DA PÁGINA
+st.set_page_config(page_title="Análise de Sentimento", page_icon="😊", layout="wide")
 st.markdown("""
     <style>
-    html, body, .main {
-        background-color: #ffffff;
-        overflow: hidden !important;
-    }
+    .main {background-color: #f8fafc; padding: 10px;}
     .stTextArea textarea {
         border-radius: 8px;
-        border: 1px solid #d1d5db;
-        padding: 10px;
+        border: 1px solid #cbd5e1;
+        padding: 12px;
         font-size: 14px;
     }
     .stButton>button {
@@ -50,59 +52,55 @@ st.markdown("""
         border-radius: 8px;
         padding: 10px 20px;
         border: none;
-        font-weight: 500;
     }
     .stButton>button:hover {
         background-color: #2563eb;
+        transition: 0.2s ease-in-out;
     }
     .header {
         color: #1f2937;
-        font-size: 2.2rem;
+        font-size: 2.5rem;
         font-weight: 700;
         text-align: center;
-        margin-bottom: 5px;
+        margin-bottom: 10px;
     }
     .info {
         color: #4b5563;
-        font-size: 1.05rem;
+        font-size: 1.1rem;
         text-align: center;
-        margin-bottom: 20px;
+        margin-bottom: 25px;
     }
     .result-box {
         background-color: #ffffff;
-        border-radius: 8px;
-        padding: 12px;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        font-size: 14px;
-        height: 120px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 10px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
     .subheader {
-        font-size: 1.3rem;
+        font-size: 1.4rem;
         color: #1e40af;
-        margin-bottom: 10px;
+        margin: 10px 0;
         font-weight: 600;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# TÍTULO E INSTRUÇÕES
+# HEADER
 st.markdown('<div class="header">Análise de Sentimento com IA 😊</div>', unsafe_allow_html=True)
-st.markdown('<div class="info">Digite frases em inglês separadas por "." para ver a análise emocional de cada uma.</div>', unsafe_allow_html=True)
+st.markdown('<div class="info">Digite frases em inglês separadas por "." e veja a análise individual de sentimento.</div>', unsafe_allow_html=True)
 
-# LAYOUT TRIPARTIDO: ENTRADA | RESULTADOS | GRÁFICO
-col_input, col_result, col_plot = st.columns([1, 1, 1])
+# LAYOUT
+col_input, col_result = st.columns([1.2, 2])
 
-# FUNÇÃO DE GRÁFICO
+# PLOT
 def plot_sentiment_trend(results):
     x = np.arange(1, len(results) + 1)
     y = np.array([r["prob"][1].item() for r in results])
     labels = [r["label"] for r in results]
 
-    fig, ax = plt.subplots(figsize=(4, 3))
+    fig, ax = plt.subplots(figsize=(10, 4))
 
     if len(results) >= 4:
         x_smooth = np.linspace(x.min(), x.max(), 300)
@@ -119,31 +117,37 @@ def plot_sentiment_trend(results):
                 ha='center', fontsize=9, color='green' if label == 'Positivo 😊' else 'red')
 
     ax.set_ylim(-0.1, 1.5)
-    ax.set_title("Tendência")
-    ax.set_ylabel("Positivo")
+    ax.set_title("Tendência de Sentimento")
+    ax.set_ylabel("Prob. Positivo")
     ax.set_xlabel("Frase")
-    ax.set_xticks(x)
     st.pyplot(fig, use_container_width=True)
 
 # VARIÁVEIS
 results = []
 
-# ENTRADA
+# COLUNA DE ENTRADA
 with col_input:
-    st.markdown("### Entrada")
-    user_input = st.text_area("Texto:", placeholder="Ex: I love it. I hate noise.", height=200)
-    analyze_button = st.button("Analisar 🚀")
+    st.markdown("### Texto de Entrada")
+    user_input = st.text_area("Digite seu Texto:",
+        placeholder="Exemplo: I love this. This is bad.",
+        height=200
+    )
+    st.markdown("<br>", unsafe_allow_html=True)
+    analyze_button = st.button("Analisar Sentimentos 🚀")
 
-# RESULTADOS
-with col_result:
     if analyze_button and user_input:
-        texts = [t.strip() for t in user_input.split(".") if t.strip()]
-        time.sleep(0.3)
-        if not texts:
-            st.error("❌ Nenhuma frase válida encontrada.")
-            st.stop()
+        with st.spinner("🔍 Analisando..."):
+            texts = [t.strip() for t in user_input.split(".") if t.strip()]
+            time.sleep(0.5)
+            if not texts:
+                st.error("❌ Nenhuma frase válida encontrada.")
+                st.stop()
 
-        tokenizer, model = load_model()
+        valid_msg = st.empty()
+        valid_msg.success(f"✅ {len(texts)} frase(s) detectada(s).")
+
+        # Exemplo fictício para testes
+        tokenizer, model = load_model()  # sua função de carregamento
         classes = ["Negativo 😞", "Positivo 😊"]
 
         for text in texts:
@@ -154,24 +158,27 @@ with col_result:
                 "text": text
             })
 
-        st.markdown('<div class="subheader">Resultados</div>', unsafe_allow_html=True)
+        valid_msg.empty()
+
+        st.markdown("<div style='max-height: 400px; overflow-y: auto;'>", unsafe_allow_html=True)
 
         for result in results:
             label = result["label"]
             prob = result["prob"]
             text = result["text"]
             label_color = "#22c55e" if label == 'Positivo 😊' else "#ef4444"
-
             st.markdown(f'''
-            <div class="result-box">
-                <div><b>Frase:</b> {text}</div>
-                <div><b>Sentimento:</b> <span style="color:{label_color}">{label}</span></div>
-                <div><b>Prob.:</b> Neg: {prob[0]:.2f} | Pos: {prob[1]:.2f}</div>
-            </div>
+                <div class="result-box">
+                    <b>Frase:</b> {text}<br>
+                    <b>Sentimento:</b> <span style="color:{label_color}">{label}</span><br>
+                    <b>Probabilidades:</b> Negativo: {prob[0]:.4f} | Positivo: {prob[1]:.4f}
+                </div>
             ''', unsafe_allow_html=True)
 
-# GRÁFICO
-with col_plot:
-    if results:
-        st.markdown('<div class="subheader">Visualização</div>', unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+# COLUNA DO GRÁFICO
+with col_result:
+    if analyze_button and user_input and results:
+        st.markdown('<div class="subheader">Visualização Gráfica</div>', unsafe_allow_html=True)
         plot_sentiment_trend(results)
