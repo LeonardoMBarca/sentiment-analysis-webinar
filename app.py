@@ -119,7 +119,7 @@ with col_input:
             text = result["text"]
             label_color = "#22c55e" if label == 'Positivo 😊' else "#ef4444"
             with st.container():
-                st.markdown(f'<div class="result-box">', unsafe_allow_html=True)
+                st.markdown(f'<br>', unsafe_allow_html=True)
                 st.markdown(f"**Frase**: {text}")
                 st.markdown(f"**Rótulo Previsto**: <span style='color:{label_color}'>{label}</span>", unsafe_allow_html=True)
                 st.markdown(f"**Probabilidades**: Negativo: {prob[0]:.4f} | Positivo: {prob[1]:.4f}")
