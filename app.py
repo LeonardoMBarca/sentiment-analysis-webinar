@@ -13,7 +13,7 @@ st.markdown("""
     .stTextArea textarea {border-radius: 10px; border: 2px solid #d1d5db; padding: 10px;}
     .stButton>button {background-color: #4b6cb7; color: white; border-radius: 8px; padding: 10px 20px;}
     .stButton>button:hover {background-color: #182848; border-color: #182848;}
-    .result-box {background-color: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
+    .result-box {background-color: white; border-radius: 2px; padding: 3px; margin-bottom: 3px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
     .header {color: #3a34eb; font-size: 2.5em; font-weight: bold; text-align: center; margin-bottom: 20px;}
     .subheader {color: #4b6cb7; font-size: 1.5em; font-weight: bold; margin-top: 20px;}
     .info {color: #374151; font-size: 1.1em; text-align: center; margin-bottom: 20px;}
@@ -73,8 +73,10 @@ def plot_sentiment_trend(results):
     ax.set_xlabel("Ordem da Frase")
     st.pyplot(fig, use_container_width=True)
 
+# VARIÁVEIS GLOBAIS
 results = []
 
+# COLUNA DE ENTRADA E RESULTADOS
 with col_input:
     st.markdown("### Entrada")
     user_input = st.text_area(
@@ -119,7 +121,7 @@ with col_input:
             text = result["text"]
             label_color = "#22c55e" if label == 'Positivo 😊' else "#ef4444"
             with st.container():
-                st.markdown(f'<br>', unsafe_allow_html=True)
+                st.markdown(f'<div class="result-box">', unsafe_allow_html=True)
                 st.markdown(f"**Frase**: {text}")
                 st.markdown(f"**Rótulo Previsto**: <span style='color:{label_color}'>{label}</span>", unsafe_allow_html=True)
                 st.markdown(f"**Probabilidades**: Negativo: {prob[0]:.4f} | Positivo: {prob[1]:.4f}")
@@ -127,6 +129,7 @@ with col_input:
 
         st.markdown("</div>", unsafe_allow_html=True)
 
+# COLUNA DO GRÁFICO
 with col_result:
     if analyze_button and user_input and results:
         st.markdown('<div class="subheader">Gráfico de Mudança de Sentimento</div>', unsafe_allow_html=True)
