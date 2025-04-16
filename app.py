@@ -166,7 +166,7 @@ with col_input:
             label = result["label"]
             prob = result["prob"]
             text = result["text"]
-            label_color = "#22c55e" if label == 'Positivo 😊' else "#ef4444"
+            label_color = "#000000" if label == 'Positivo 😊' else "#ef4444"
             st.markdown(f'''
                 <div class="result-box">
                     <b>Frase:</b> <span style="color:#1e293b;">"{text}"</span><br>
