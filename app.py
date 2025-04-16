@@ -58,14 +58,14 @@ st.markdown("""
         transition: 0.2s ease-in-out;
     }
     .header {
-        color: #1f2937;
+        color: #3a32a8;
         font-size: 2.5rem;
         font-weight: 700;
         text-align: center;
         margin-bottom: 10px;
     }
     .info {
-        color: #4b5563;
+        color: #3a32a8;
         font-size: 1.1rem;
         text-align: center;
         margin-bottom: 25px;
